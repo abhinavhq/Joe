@@ -157,3 +157,6 @@ def set_speaking(val):
 
 def set_listening(val):
     avatar.set_listening(val)
+
+def set_listening(val):
+    avatar.set_listening(val)
