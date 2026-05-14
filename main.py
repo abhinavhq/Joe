@@ -8,24 +8,18 @@ from skills.weather import get_weather
 from skills.jokes import get_joke
 from skills.music import play_music
 from skills.reminders import set_reminder
-from skills.system_controls import volume_up, volume_down, mute, media_pause, media_next, media_prev
 from skills.wake_word import listen_for_wake_word
 from skills.memory import save_memory, get_memory
-from skills.personality import set_personality
 from skills.datetime_skill import get_time, get_date
 from skills.news import get_news
-from skills.browser import (google_search, open_website, youtube_search_play,
-scroll_down, scroll_up, close_browser, go_back)
+from skills.browser import (open_website, scroll_down, scroll_up, close_browser)
 from skills.system_info import get_system_info, get_battery, get_cpu, get_ram, get_disk
 from skills.screenshot_ocr import take_screenshot, read_screen
-from skills.avatar import start_avatar, set_listening
 from skills.whatsapp import send_whatsapp_now
 from config import CONTACTS
 from skills.system_controls import (
     volume_up, volume_down, mute,
-    media_pause, media_next, media_prev,
-    shutdown, restart, sleep,
-    cancel_shutdown, lock_pc
+    media_pause, media_next, media_prev
 )
 from skills.knowledge import search_wikipedia, search_web_info
 from skills.mate_engine import start_mate_engine

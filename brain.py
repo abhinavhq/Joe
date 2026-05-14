@@ -1,9 +1,6 @@
 import urllib.request
-import json
-import time
 from config import GEMINI_API_KEYS
-from skills.memory import init_memory, save_conversation, get_recent_conversations, get_all_memories
-from skills.personality import get_personality
+from skills.memory import init_memory
 
 init_memory()
 
