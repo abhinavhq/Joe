@@ -23,6 +23,12 @@ from skills.system_controls import (
 )
 from skills.knowledge import search_wikipedia, search_web_info
 from skills.mate_engine import start_mate_engine
+# from skills.avatar import start_avatar, set_listening
+from skills.mate_engine import start_mate_engine, stop_mate_engine
+import atexit
+from skills.mate_engine import stop_mate_engine
+from skills.vision import what_is_this, describe_scene, read_text_from_camera
+atexit.register(stop_mate_engine)
 
 import re
 
@@ -124,6 +130,19 @@ def handle(query):
                                                                                                           "").strip())
         speak(result)
 
+     # Vision
+    elif any(w in query for w in ["what is this", "what do you see", "look at this"]):
+        speak("Let me look!")
+        speak(what_is_this())
+
+    elif any(w in query for w in ["describe", "what's around", "look around"]):
+        speak("Looking around!")
+        speak(describe_scene())
+
+    elif any(w in query for w in ["read this", "what does it say", "read the text"]):
+        speak("Let me read that!")
+        speak(read_text_from_camera())
+
 
 
     # Volume controls
@@ -185,11 +204,13 @@ def handle(query):
         speak(ask(query))
 
 
-# if __name__ == "__main__":
-#     start_avatar()
+import atexit
+from skills.mate_engine import start_mate_engine, stop_mate_engine
 
 if __name__ == "__main__":
-    start_mate_engine()  # Start Mate Engine with JOI!
+    atexit.register(stop_mate_engine)  # ← closes Mate Engine on exit
+    start_mate_engine()
+
 
     name = get_memory("user", "name")
     if name:
@@ -201,16 +222,15 @@ if __name__ == "__main__":
         listen_for_wake_word()
         speak("Yeah? What's up!")
 
-        # Keep listening until silence or bye
         while True:
             query = listen()
             if query:
                 if any(w in query for w in ["bye", "exit", "quit", "stop"]):
                     speak("Goodbye! Have a great day!")
+                    stop_mate_engine()
                     exit()
                 handle(query)
             else:
-                # Only go back to sleep after 3 empty listens
                 empty_count = 0
                 empty_count += 1
                 if empty_count >= 3:
