@@ -29,6 +29,8 @@ import atexit
 from skills.mate_engine import stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
 atexit.register(stop_mate_engine)
+from skills.hand_tracking import start_hand_tracking, stop_hand_tracking
+from skills.gesture_commands import handle_gesture
 
 import re
 
@@ -143,7 +145,14 @@ def handle(query):
         speak("Let me read that!")
         speak(read_text_from_camera())
 
+    # Hand tracking
+    elif any(w in query for w in ["start hand tracking", "hand tracking on"]):
+        start_hand_tracking(callback=handle_gesture)
+        speak("Hand tracking started!")
 
+    elif any(w in query for w in ["stop hand tracking", "hand tracking off"]):
+        stop_hand_tracking()
+        speak("Hand tracking stopped!")
 
     # Volume controls
     elif any(w in query for w in ["volume up", "increase volume", "louder", "turn up"]):
@@ -210,6 +219,7 @@ from skills.mate_engine import start_mate_engine, stop_mate_engine
 if __name__ == "__main__":
     atexit.register(stop_mate_engine)  # ← closes Mate Engine on exit
     start_mate_engine()
+    start_hand_tracking(callback=handle_gesture)
 
 
     name = get_memory("user", "name")
