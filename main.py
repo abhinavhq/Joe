@@ -1,7 +1,7 @@
 from speaker import speak
 from listener import listen
 from brain import ask
-from config import ASSISTANT_NAME
+from config import ASSISTANT_NAME, CONTACTS
 from skills.web_search import web_search
 from skills.open_apps import open_app
 from skills.weather import get_weather
@@ -10,29 +10,32 @@ from skills.music import play_music
 from skills.reminders import set_reminder
 from skills.wake_word import listen_for_wake_word
 from skills.memory import save_memory, get_memory
+from skills.personality import set_personality
 from skills.datetime_skill import get_time, get_date
 from skills.news import get_news
-from skills.browser import (open_website, scroll_down, scroll_up, close_browser)
+from skills.browser import (
+    google_search, open_website, youtube_search_play,
+    scroll_down, scroll_up, scroll_to_top, scroll_to_bottom,
+    close_browser, go_back, go_forward, refresh_page,
+    new_tab, close_tab, next_tab, zoom_in, zoom_out,
+    zoom_reset, find_on_page, get_page_title, type_in_browser
+)
 from skills.system_info import get_system_info, get_battery, get_cpu, get_ram, get_disk
 from skills.screenshot_ocr import take_screenshot, read_screen
 from skills.whatsapp import send_whatsapp_now
-from config import CONTACTS
 from skills.system_controls import (
     volume_up, volume_down, mute,
-    media_pause, media_next, media_prev
+    media_pause, media_next, media_prev,
+    shutdown, restart, sleep,
+    cancel_shutdown, lock_pc
 )
 from skills.knowledge import search_wikipedia, search_web_info
-from skills.mate_engine import start_mate_engine
-# from skills.avatar import start_avatar, set_listening
 from skills.mate_engine import start_mate_engine, stop_mate_engine
-import atexit
-from skills.mate_engine import stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
-atexit.register(stop_mate_engine)
-from skills.hand_tracking import start_hand_tracking, stop_hand_tracking
-from skills.gesture_commands import handle_gesture
-
+import atexit
 import re
+
+atexit.register(stop_mate_engine)
 
 def handle(query):
     if not query:
@@ -54,7 +57,7 @@ def handle(query):
     elif any(w in query for w in ["joke", "funny", "laugh"]):
         speak(get_joke())
 
-     # Time
+    # Time
     elif any(w in query for w in ["what time", "current time", "time now"]):
         speak(get_time())
 
@@ -82,18 +85,36 @@ def handle(query):
     elif any(w in query for w in ["disk", "storage", "space"]):
         speak(get_disk())
 
-
-      # Screensho
+    # Screenshot
     elif any(w in query for w in ["take screenshot", "screenshot"]):
         speak(take_screenshot())
 
     elif any(w in query for w in ["read screen", "what's on screen", "read my screen"]):
         speak(read_screen())
 
-     # Browser automation
-    elif "browse" in query or "go to" in query:
-        site = query.replace("browse", "").replace("go to", "").strip()
+    # Vision
+    elif any(w in query for w in ["what is this", "what do you see", "look at this"]):
+        speak("Let me look!")
+        speak(what_is_this())
+
+    elif any(w in query for w in ["look around", "describe"]):
+        speak("Looking around!")
+        speak(describe_scene())
+
+    elif any(w in query for w in ["read this", "what does it say", "read the text"]):
+        speak("Let me read that!")
+        speak(read_text_from_camera())
+
+    # Browser
+    elif "go to" in query or "browse" in query:
+        site = query.replace("go to", "").replace("browse", "").strip()
         speak(open_website(site))
+
+    elif "scroll to top" in query or "top of page" in query:
+        speak(scroll_to_top())
+
+    elif "scroll to bottom" in query or "bottom of page" in query:
+        speak(scroll_to_bottom())
 
     elif "scroll down" in query:
         speak(scroll_down())
@@ -101,10 +122,44 @@ def handle(query):
     elif "scroll up" in query:
         speak(scroll_up())
 
+    elif "go back" in query or "previous page" in query:
+        speak(go_back())
+
+    elif "go forward" in query or "next page" in query:
+        speak(go_forward())
+
+    elif "refresh" in query or "reload" in query:
+        speak(refresh_page())
+
+    elif "new tab" in query:
+        speak(new_tab())
+
+    elif "close tab" in query:
+        speak(close_tab())
+
+    elif "next tab" in query or "switch tab" in query:
+        speak(next_tab())
+
+    elif "zoom in" in query:
+        speak(zoom_in())
+
+    elif "zoom out" in query:
+        speak(zoom_out())
+
+    elif "zoom reset" in query or "reset zoom" in query:
+        speak(zoom_reset())
+
+    elif "what page" in query or "current page" in query:
+        speak(get_page_title())
+
+    elif "find" in query and "page" in query:
+        term = query.replace("find", "").replace("on page", "").replace("page", "").strip()
+        speak(find_on_page(term))
+
     elif "close browser" in query:
         speak(close_browser())
 
-     # WhatsApp
+    # WhatsApp
     elif "whatsapp" in query or "send message" in query or "text" in query:
         speak("Who do you want to message?")
         contact_name = listen()
@@ -114,45 +169,19 @@ def handle(query):
             if message:
                 speak(send_whatsapp_now(CONTACTS[contact_name], message))
         else:
-            speak(f"I don't have {contact_name} in your contacts!")
+            speak("I don't have that contact!")
 
     # Wikipedia
     elif any(w in query for w in ["wikipedia", "wiki", "who is", "what is", "tell me about", "explain"]):
         speak("Let me look that up!")
-        result = search_wikipedia(
-            query.replace("wikipedia", "").replace("wiki", "").replace("who is", "").replace("what is", "").replace(
-                "tell me about", "").replace("explain", "").strip())
+        result = search_wikipedia(query.replace("wikipedia", "").replace("wiki", "").replace("who is", "").replace("what is", "").replace("tell me about", "").replace("explain", "").strip())
         speak(result)
 
     # Web info
     elif any(w in query for w in ["search info", "find info", "look up info", "get info"]):
         speak("Searching the web!")
-        result = search_web_info(
-            query.replace("search info", "").replace("find info", "").replace("look up info", "").replace("get info",
-                                                                                                          "").strip())
+        result = search_web_info(query.replace("search info", "").replace("find info", "").replace("look up info", "").replace("get info", "").strip())
         speak(result)
-
-     # Vision
-    elif any(w in query for w in ["what is this", "what do you see", "look at this"]):
-        speak("Let me look!")
-        speak(what_is_this())
-
-    elif any(w in query for w in ["describe", "what's around", "look around"]):
-        speak("Looking around!")
-        speak(describe_scene())
-
-    elif any(w in query for w in ["read this", "what does it say", "read the text"]):
-        speak("Let me read that!")
-        speak(read_text_from_camera())
-
-    # Hand tracking
-    elif any(w in query for w in ["start hand tracking", "hand tracking on"]):
-        start_hand_tracking(callback=handle_gesture)
-        speak("Hand tracking started!")
-
-    elif any(w in query for w in ["stop hand tracking", "hand tracking off"]):
-        stop_hand_tracking()
-        speak("Hand tracking stopped!")
 
     # Volume controls
     elif any(w in query for w in ["volume up", "increase volume", "louder", "turn up"]):
@@ -171,7 +200,7 @@ def handle(query):
     elif any(w in query for w in ["next song", "next track", "skip"]):
         speak(media_next())
 
-    elif any(w in query for w in ["previous song", "prev track", "go back"]):
+    elif any(w in query for w in ["previous song", "prev track"]):
         speak(media_prev())
 
     # Music
@@ -191,7 +220,7 @@ def handle(query):
     elif "my name is" in query:
         name = query.replace("my name is", "").strip()
         save_memory("user", "name", name)
-        speak(f"Got it! I'll remember that your name is {name}!")
+        speak(f"Got it! I'll remember your name is {name}!")
 
     # Remember preferences
     elif any(w in query for w in ["i like", "i love", "i hate", "i enjoy"]):
@@ -203,9 +232,47 @@ def handle(query):
         save_memory("user_info", query[:50], query)
         speak(ask(query))
 
+    # Personality modes
+    elif "study mode" in query or "focus mode" in query:
+        speak(set_personality("study"))
+        speak("Okay I'm in study mode, let's get it!")
+
+    elif "hype mode" in query or "motivate me" in query:
+        speak(set_personality("hype"))
+        speak("LET'S GOOO! I'm hyped up and ready!")
+
+    elif "chill mode" in query or "relax mode" in query:
+        speak(set_personality("chill"))
+        speak("Yo we vibing now, chill mode activated")
+
+    elif "roast mode" in query or "roast me" in query:
+        speak(set_personality("roast"))
+        speak("Oh you want to get roasted? Say less!")
+
+    elif "normal mode" in query or "default mode" in query:
+        speak(set_personality("normal"))
+        speak("Back to normal, what's up!")
+
+    # PC controls
+    elif "shutdown" in query or "turn off pc" in query:
+        speak(shutdown())
+
+    elif "restart" in query or "reboot" in query:
+        speak(restart())
+
+    elif "sleep" in query or "hibernate" in query:
+        speak(sleep())
+
+    elif "cancel shutdown" in query:
+        speak(cancel_shutdown())
+
+    elif "lock" in query or "lock pc" in query:
+        speak(lock_pc())
+
     # Exit
     elif any(w in query for w in ["bye", "exit", "quit", "stop"]):
         speak("Goodbye! Have a great day!")
+        stop_mate_engine()
         exit()
 
     # AI chat
@@ -213,14 +280,8 @@ def handle(query):
         speak(ask(query))
 
 
-import atexit
-from skills.mate_engine import start_mate_engine, stop_mate_engine
-
 if __name__ == "__main__":
-    atexit.register(stop_mate_engine)  # ← closes Mate Engine on exit
     start_mate_engine()
-    start_hand_tracking(callback=handle_gesture)
-
 
     name = get_memory("user", "name")
     if name:
@@ -232,17 +293,19 @@ if __name__ == "__main__":
         listen_for_wake_word()
         speak("Yeah? What's up!")
 
+        empty_count = 0
         while True:
             query = listen()
             if query:
+                empty_count = 0
                 if any(w in query for w in ["bye", "exit", "quit", "stop"]):
                     speak("Goodbye! Have a great day!")
                     stop_mate_engine()
                     exit()
                 handle(query)
             else:
-                empty_count = 0
                 empty_count += 1
-                if empty_count >= 3:
+                if empty_count >= 5:
+                    speak("I'll be here if you need me!")
                     print("👂 Going back to sleep...")
                     break

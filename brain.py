@@ -4,6 +4,7 @@ import time
 from config import GEMINI_API_KEYS
 from skills.memory import init_memory, save_conversation, get_recent_conversations, get_all_memories
 from skills.personality import get_personality
+from skills.semantic_memory import get_relevant_memories, extract_and_save_memory, get_memory_summary
 
 init_memory()
 
@@ -42,6 +43,14 @@ def ask(query):
         memory_text = "What you remember about Abhinav:\n"
         memory_text += "\n".join([f"- {m[1]}: {m[2]}" for m in memories])
 
+    # Add semantic memories
+    relevant = get_relevant_memories(query)
+    memory_summary = get_memory_summary()
+    if memory_summary:
+        memory_text += f"\n\n{memory_summary}"
+    if relevant:
+        memory_text += "\n\nRelevant memories:\n" + "\n".join([f"- {m}" for m in relevant])
+
     for i in range(len(GEMINI_API_KEYS)):
         key = GEMINI_API_KEYS[gemini_index].strip()
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
@@ -54,6 +63,7 @@ def ask(query):
             result = json.loads(response.read())
             reply = result["candidates"][0]["content"]["parts"][0]["text"]
             save_conversation("joi", reply)
+            extract_and_save_memory(query, reply)
             return reply
         except Exception as e:
             print(f"Gemini key {gemini_index + 1} failed: {e}")
