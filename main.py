@@ -34,6 +34,7 @@ from skills.mate_engine import start_mate_engine, stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
 from skills.face_recognition import register_face, recognize_face, start_presence_detection
+from skills.emotion_detection import detect_emotion_from_text
 import re
 
 def on_person_detected(name):
@@ -298,8 +299,11 @@ def handle(query):
         stop_mate_engine()
         exit()
 
+
     # AI chat
     else:
+        emotion = detect_emotion_from_text(query)
+        print(f"🎭 Emotion: {emotion}")
         speak(ask(query))
 
 
