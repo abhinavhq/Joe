@@ -33,7 +33,14 @@ from skills.knowledge import search_wikipedia, search_web_info
 from skills.mate_engine import start_mate_engine, stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
+from skills.face_recognition import register_face, recognize_face, start_presence_detection
 import re
+
+def on_person_detected(name):
+    if name == "Abhinav":
+        speak(f"Hey {name}! I see you!")
+    else:
+        speak("Hey, who are you?")
 
 atexit.register(stop_mate_engine)
 
@@ -269,6 +276,22 @@ def handle(query):
     elif "lock" in query or "lock pc" in query:
         speak(lock_pc())
 
+    # Face recognition
+
+    elif "register my face" in query or "remember my face" in query:
+        speak("Look at the camera!")
+        result = register_face("Abhinav")
+        speak(result)
+
+    elif "who am i" in query or "recognize me" in query:
+        speak("Let me look!")
+        name = recognize_face()
+        speak(f"I see {name}!")
+
+    elif "start presence" in query:
+        start_presence_detection(callback=on_person_detected)
+        speak("I'll let you know when I see someone!")
+
     # Exit
     elif any(w in query for w in ["bye", "exit", "quit", "stop"]):
         speak("Goodbye! Have a great day!")
@@ -282,6 +305,7 @@ def handle(query):
 
 if __name__ == "__main__":
     start_mate_engine()
+    start_presence_detection(callback=on_person_detected)
 
     name = get_memory("user", "name")
     if name:
