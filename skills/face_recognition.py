@@ -1,106 +1,115 @@
 import cv2
 import os
+import numpy as np
 import pickle
 import threading
-import numpy as np
+import time
 
 FACES_DIR = os.path.join(os.path.dirname(__file__), '..', 'known_faces')
 ENCODINGS_FILE = os.path.join(os.path.dirname(__file__), '..', 'face_encodings.pkl')
-
 os.makedirs(FACES_DIR, exist_ok=True)
 
-known_encodings = []
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+
 known_names = []
-presence_callback = None
+is_trained = False
 running = False
-
-
-def load_encodings():
-    global known_encodings, known_names
-    if os.path.exists(ENCODINGS_FILE):
-        with open(ENCODINGS_FILE, 'rb') as f:
-            data = pickle.load(f)
-            known_encodings = data['encodings']
-            known_names = data['names']
-        print(f"✅ Loaded {len(known_names)} faces!")
-
-
-def save_encodings():
-    with open(ENCODINGS_FILE, 'wb') as f:
-        pickle.dump({'encodings': known_encodings, 'names': known_names}, f)
+presence_callback = None
 
 
 def register_face(name):
+    global known_names, is_trained
     try:
-        import face_recognition
         cap = cv2.VideoCapture(0)
         print(f"📸 Look at camera to register {name}...")
 
-        samples = []
+        faces_data = []
+        labels = []
         count = 0
+        label_id = len(known_names)
 
-        while count < 10:
+        while count < 30:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            locations = face_recognition.face_locations(rgb)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-            if locations:
-                encodings = face_recognition.face_encodings(rgb, locations)
-                if encodings:
-                    samples.append(encodings[0])
-                    count += 1
-                    cv2.putText(frame, f"Capturing... {count}/10",
-                                (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            for (x, y, w, h) in faces:
+                face_roi = gray[y:y + h, x:x + w]
+                face_roi = cv2.resize(face_roi, (100, 100))
+                faces_data.append(face_roi)
+                labels.append(label_id)
+                count += 1
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(frame, f"Capturing {count}/30",
+                            (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
             cv2.imshow("Register Face", frame)
-            if cv2.waitKey(100) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
         cap.release()
         cv2.destroyAllWindows()
 
-        if samples:
-            avg_encoding = np.mean(samples, axis=0)
-            known_encodings.append(avg_encoding)
+        if faces_data:
             known_names.append(name)
-            save_encodings()
-            return f"Face registered for {name}!"
-        return "Couldn't capture face!"
+            recognizer.train(faces_data, np.array(labels))
+            recognizer.save(ENCODINGS_FILE.replace('.pkl', '.yml'))
+            with open(ENCODINGS_FILE, 'wb') as f:
+                pickle.dump(known_names, f)
+            is_trained = True
+            return f"Face registered for {name}! I'll recognize you now!"
+        return "Couldn't capture face! Try again!"
     except Exception as e:
-        return f"Face registration error: {e}"
+        return f"Registration error: {e}"
+
+
+def load_encodings():
+    global known_names, is_trained
+    try:
+        yml_path = ENCODINGS_FILE.replace('.pkl', '.yml')
+        if os.path.exists(yml_path) and os.path.exists(ENCODINGS_FILE):
+            recognizer.read(yml_path)
+            with open(ENCODINGS_FILE, 'rb') as f:
+                known_names = pickle.load(f)
+            is_trained = True
+            print(f"✅ Loaded {len(known_names)} faces!")
+    except Exception as e:
+        print(f"Load error: {e}")
 
 
 def recognize_face():
     try:
-        import face_recognition
         cap = cv2.VideoCapture(0)
         ret, frame = cap.read()
         cap.release()
 
         if not ret:
-            return "Unknown"
+            return "Couldn't access camera!"
 
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        locations = face_recognition.face_locations(rgb)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-        if not locations:
-            return "No face detected"
+        if len(faces) == 0:
+            return "No face detected!"
 
-        encodings = face_recognition.face_encodings(rgb, locations)
+        if not is_trained:
+            return "No faces registered yet! Say 'register my face' first!"
 
-        for encoding in encodings:
-            if known_encodings:
-                matches = face_recognition.compare_faces(known_encodings, encoding, tolerance=0.6)
-                distances = face_recognition.face_distance(known_encodings, encoding)
-                best_match = np.argmin(distances)
+        for (x, y, w, h) in faces:
+            face_roi = gray[y:y + h, x:x + w]
+            face_roi = cv2.resize(face_roi, (100, 100))
+            label, confidence = recognizer.predict(face_roi)
 
-                if matches[best_match]:
-                    return known_names[best_match]
+            if confidence < 100:
+                return known_names[label]
+            else:
+                return "Unknown person!"
 
-        return "Unknown person"
+        return "Unknown!"
     except Exception as e:
         return f"Recognition error: {e}"
 
@@ -117,7 +126,6 @@ def start_presence_detection(callback=None):
 def _presence_loop():
     global running
     try:
-        import face_recognition
         cap = cv2.VideoCapture(0)
         last_seen = None
 
@@ -126,29 +134,28 @@ def _presence_loop():
             if not ret:
                 continue
 
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            locations = face_recognition.face_locations(rgb)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-            if locations and known_encodings:
-                encodings = face_recognition.face_encodings(rgb, locations)
-                for encoding in encodings:
-                    matches = face_recognition.compare_faces(known_encodings, encoding)
-                    distances = face_recognition.face_distance(known_encodings, encoding)
-                    best_match = np.argmin(distances)
-
-                    if matches[best_match]:
-                        name = known_names[best_match]
-                        if name != last_seen:
-                            last_seen = name
-                            print(f"👤 Detected: {name}")
-                            if presence_callback:
-                                presence_callback(name)
+            if len(faces) > 0 and is_trained:
+                for (x, y, w, h) in faces:
+                    face_roi = gray[y:y + h, x:x + w]
+                    face_roi = cv2.resize(face_roi, (100, 100))
+                    try:
+                        label, confidence = recognizer.predict(face_roi)
+                        if confidence < 100:
+                            name = known_names[label]
+                            if name != last_seen:
+                                last_seen = name
+                                print(f"👤 Detected: {name}")
+                                if presence_callback:
+                                    presence_callback(name)
+                    except:
+                        pass
             else:
                 if last_seen:
                     last_seen = None
-                    print("👤 No one detected")
 
-            import time
             time.sleep(2)
 
         cap.release()
