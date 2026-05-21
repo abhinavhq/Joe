@@ -128,6 +128,7 @@ def _presence_loop():
     try:
         cap = cv2.VideoCapture(0)
         last_seen = None
+        last_greeted = 0  # ← add this
 
         while running:
             ret, frame = cap.read()
@@ -145,27 +146,21 @@ def _presence_loop():
                         label, confidence = recognizer.predict(face_roi)
                         if confidence < 100:
                             name = known_names[label]
-                            if name != last_seen:
+                            current_time = time.time()
+                            # Only greet once every 5 minutes ← fix!
+                            if name != last_seen or (current_time - last_greeted) > 300:
                                 last_seen = name
+                                last_greeted = current_time
                                 print(f"👤 Detected: {name}")
                                 if presence_callback:
                                     presence_callback(name)
                     except:
                         pass
             else:
-                if last_seen:
-                    last_seen = None
+                last_seen = None
 
-            time.sleep(2)
+            time.sleep(3)  # check every 3 seconds
 
         cap.release()
     except Exception as e:
         print(f"Presence error: {e}")
-
-
-def stop_presence_detection():
-    global running
-    running = False
-
-
-load_encodings()

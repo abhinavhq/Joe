@@ -2,7 +2,7 @@ import cv2
 import base64
 import urllib.request
 import json
-from config import GEMINI_API_KEYS
+from config import CEREBRAS_API_KEY
 
 
 def capture_and_analyze(prompt="What do you see in this image? Describe it casually like a friend."):

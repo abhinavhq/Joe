@@ -20,33 +20,34 @@ def _parse_keys() -> list[str]:
 #     "gsk_TlqnKRbea2Vl90xDdpp3WGdyb3FYnYB1tUfNCg9vNDkBQJpKVNy"
 #   ]
 
+#
+# GEMINI_API_KEYS = [
+#     "AIzaSyDk1hMXLoOOQw4XPn3oR_yz8QL9vnmWN5A",
+#     "AIzaSyA7-TLlg4zp6aoPp6idYnVJjBuNwHi-p2w",
+#     "AIzaSyDM1CwNtHeIhF9LUlAwNK9j74B0qZn1UQg",
+#     "AIzaSyAka-f41FpJM-ydDwmXsEGMCYwlRkGohOg",
+#     "AIzaSyDI8TyM2H4D_U3q8D9zJ0j3mFD0MB5PqaI",
+#     "AIzaSyDszWCxUUvjLKqGK3yVpEi_RP3ttnls4E4",
+#     "AIzaSyAjS4H55ThJGmmnVqtxyMZ1_t58dhoHfuc",
+#     "AIzaSyDHszzz-EXNFpxRg_C-XVGaSR-jOUslu8g",
+#     "AIzaSyBpcUEKlWPa1HY0sd4JlQMAHCPNcRlOHc8",
+#     "AIzaSyBCS9Ay9QBlgB_Oooyg2XGLSOD9pw9EN9s",
+#     "AIzaSyDhv3E5PUdXCRehjrhpIDiIMjy2QzQrLYY",
+#     "AIzaSyBmyVoi9_zbCfIedrITk1Iem9wGfAfGz30",
+#     "AIzaSyDqYHvco1n1_lRyr0uJCEy1DHr9nyoXf2Q",
+#     "AIzaSyCS1-eioEoakGqCsP1cprCz0Pvtz7rOVbc",
+#     "AIzaSyATKYuSfQtkerBzb67WFGlUYAB8ZPqWLZM",
+#     "AIzaSyAUA7piUE-cYl8R8NrsbXNnLoYEqF64S9o",
+#     "AIzaSyAdGTzMb-PUdNcuE1LP23kmMGF0MrzfMyM",
+#     "AIzaSyC4mVat6UjcJbKFNwplG2Kl4gqLDp08H9w",
+#     "AIzaSyBrp40NGWRJ8HNyLQoUI0VAWXHa3PIz6l0",
+#     "AIzaSyBIiEt0xP3MUUTG2-quYwnO9TTYBoRBfvo",
+#     "AIzaSyCubgw3y5e2UwLIBfgQMN7ZMqY8zFW9wig",
+#     "AIzaSyAMX4eXkA-T-cbnbVPQHOV7YERi8OHiEH4",
+#     ""]
 
-GEMINI_API_KEYS = [
-    "AIzaSyDk1hMXLoOOQw4XPn3oR_yz8QL9vnmWN5A",
-    "AIzaSyA7-TLlg4zp6aoPp6idYnVJjBuNwHi-p2w",
-    "AIzaSyDM1CwNtHeIhF9LUlAwNK9j74B0qZn1UQg",
-    "AIzaSyAka-f41FpJM-ydDwmXsEGMCYwlRkGohOg",
-    "AIzaSyDI8TyM2H4D_U3q8D9zJ0j3mFD0MB5PqaI",
-    "AIzaSyDszWCxUUvjLKqGK3yVpEi_RP3ttnls4E4",
-    "AIzaSyAjS4H55ThJGmmnVqtxyMZ1_t58dhoHfuc",
-    "AIzaSyDHszzz-EXNFpxRg_C-XVGaSR-jOUslu8g",
-    "AIzaSyBpcUEKlWPa1HY0sd4JlQMAHCPNcRlOHc8",
-    "AIzaSyBCS9Ay9QBlgB_Oooyg2XGLSOD9pw9EN9s",
-    "AIzaSyDhv3E5PUdXCRehjrhpIDiIMjy2QzQrLYY",
-    "AIzaSyBmyVoi9_zbCfIedrITk1Iem9wGfAfGz30",
-    "AIzaSyDqYHvco1n1_lRyr0uJCEy1DHr9nyoXf2Q",
-    "AIzaSyCS1-eioEoakGqCsP1cprCz0Pvtz7rOVbc",
-    "AIzaSyATKYuSfQtkerBzb67WFGlUYAB8ZPqWLZM",
-    "AIzaSyAUA7piUE-cYl8R8NrsbXNnLoYEqF64S9o",
-    "AIzaSyAdGTzMb-PUdNcuE1LP23kmMGF0MrzfMyM",
-    "AIzaSyC4mVat6UjcJbKFNwplG2Kl4gqLDp08H9w",
-    "AIzaSyBrp40NGWRJ8HNyLQoUI0VAWXHa3PIz6l0",
-    "AIzaSyBIiEt0xP3MUUTG2-quYwnO9TTYBoRBfvo",
-    "AIzaSyCubgw3y5e2UwLIBfgQMN7ZMqY8zFW9wig",
-    "AIzaSyAMX4eXkA-T-cbnbVPQHOV7YERi8OHiEH4",
-    ""
+CEREBRAS_API_KEY = "csk-ttv842pdxtcxec64jn9rdj3we2td29kh3jn6ddkjvempdymk"
 
-]
 WEATHER_API_KEY = "95388efab77661cbf445d845a9d672ac"
 ASSISTANT_NAME = "JOI"
 CITY = "Bengaluru"

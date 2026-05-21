@@ -14,52 +14,57 @@ EMOTION_KEYWORDS = {
     "bored": ["bored", "boring", "nothing to do", "dull", "monotonous"],
     "confused": ["confused", "lost", "don't understand", "what", "huh", "unclear", "help me"],
     "excited": ["excited", "can't wait", "omg", "wow", "incredible", "hyped", "pumped"],
+"lonely": ["lonely", "alone", "no one", "nobody", "miss", "missing", "empty", "isolated"],
 }
 
 # Emotion responses
 EMOTION_RESPONSES = {
     "happy": [
-        "Yess! Love that energy! What's got you so happy?",
-        "Okay you're literally glowing rn, what happened?!",
-        "That's so good to hear! Tell me everything!"
+        "OKAY YOUR ENERGY IS CONTAGIOUS RN 😆 what happened tell me everything!!",
+        "yess finally!! you seem so happy rn I love it 🥺 what's going on?",
+        "omg you're literally glowing through the screen what happened?!"
     ],
     "sad": [
-        "Hey... what's going on? Talk to me.",
-        "Aw no, what happened? I'm here for you.",
-        "I got you okay? Tell me what's wrong."
+        "hey... talk to me okay? what's going on 🥺",
+        "nooo what happened? I'm right here, tell me everything",
+        "aw don't be sad 😢 I'm here okay? what's wrong?"
     ],
     "angry": [
-        "Okay okay, breathe. What happened?",
-        "Oof who got you like this? Tell me everything.",
-        "I can tell you're heated. What's going on?"
+        "okay okay breathe 😤 who did what now??",
+        "ugh I can tell you're heated — spill, what happened",
+        "ngl I'm ready to be mad with you 😤 what's going on?"
     ],
     "anxious": [
-        "Hey, breathe okay? You're gonna be fine.",
-        "I know it feels overwhelming but you got this.",
-        "Talk to me, what's stressing you out?"
+        "hey hey hey — breathe okay? you're gonna be fine I promise 🥺",
+        "I know it feels like a lot rn but you literally got this",
+        "talk to me, what's stressing you out? let's figure it out together"
     ],
     "tired": [
-        "Go rest bro, you sound exhausted.",
-        "When did you last sleep properly?",
-        "Your body is literally telling you to chill."
+        "go sleep dummy 😂 your body is literally begging you",
+        "when did you last actually sleep?? go rest I'll be here when you wake up",
+        "you sound exhausted ngl, please go rest 🥺"
     ],
     "bored": [
-        "Okay let's fix that! Wanna do something fun?",
-        "Same honestly. Let's find something to do!",
-        "I got you, let's vibe! What are you in the mood for?"
-    ],
-    "confused": [
-        "Okay let me explain it better!",
-        "Don't worry, I got you. Let's figure it out together.",
-        "What part is confusing? I'll break it down!"
+        "okay we are NOT doing bored rn — what are you in the mood for?",
+        "same honestly 😂 let's find something fun to do",
+        "bored?? with me around?? impossible, let's vibe"
     ],
     "excited": [
-        "OKAY I CAN FEEL YOUR ENERGY! Tell me everything!",
-        "Yooo you're hyped! What's happening?!",
-        "I'm getting excited just hearing you!"
+        "OKAY YOUR ENERGY 😆😆 tell me EVERYTHING right now!!",
+        "yooo I'm getting hyped just hearing you!! what's happening??",
+        "WAIT WAIT WAIT tell me more I need to know everything!!"
+    ],
+    "confused": [
+        "okay okay don't stress — let's figure it out together",
+        "I got you! what part is confusing? I'll break it down",
+        "no no don't worry, I'll explain it better!"
+    ],
+    "lonely": [
+        "hey I'm right here okay? you're not alone 🥺",
+        "aww come talk to me then, I'm always here",
+        "I'm here! always. you know that right? 🥺"
     ]
 }
-
 
 def detect_emotion_from_text(text):
     text_lower = text.lower()
