@@ -35,6 +35,17 @@ from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
 from skills.face_recognition import register_face, recognize_face, start_presence_detection
 from skills.emotion_detection import detect_emotion_from_text
+from speaker import stop_speaking, is_speaking
+from speaker import speak, speak_stream
+
+from skills.presence import (
+    update_presence,
+    get_presence_message)
+
+from skills.passive import (
+    should_send_passive,
+    get_passive_prompt
+)
 import re
 
 def on_person_detected(name):
@@ -100,19 +111,20 @@ def handle(query):
     elif any(w in query for w in ["read screen", "what's on screen", "read my screen"]):
         speak(read_screen())
 
-    # Vision
-    elif any(w in query for w in ["what is this", "what do you see", "look at this"]):
+    # Vision — make sure these are HIGH UP in handle()!
+    elif any(w in query for w in
+                 ["what is this", "what do you see", "look at this", "look at my hand", "what am i holding",
+                  "what's in my hand"]):
         speak("Let me look!")
         speak(what_is_this())
 
-    elif any(w in query for w in ["look around", "describe"]):
+    elif any(w in query for w in ["look around", "describe what you see", "what's around"]):
         speak("Looking around!")
         speak(describe_scene())
 
     elif any(w in query for w in ["read this", "what does it say", "read the text"]):
         speak("Let me read that!")
         speak(read_text_from_camera())
-
     # Browser
     elif "go to" in query or "browse" in query:
         site = query.replace("go to", "").replace("browse", "").strip()
@@ -302,38 +314,103 @@ def handle(query):
 
     # AI chat
     else:
-        emotion = detect_emotion_from_text(query)
-        print(f"🎭 Emotion: {emotion}")
-        speak(ask(query))
 
+        emotion = detect_emotion_from_text(query)
+
+        print(f"🎭 Emotion: {emotion}")
+
+        response = ask(query)
+
+        speak_stream(response)
 
 if __name__ == "__main__":
+
     start_mate_engine()
+
     start_presence_detection(callback=on_person_detected)
 
     name = get_memory("user", "name")
+
     if name:
+
         speak(f"Hey {name}! I'm back, say Hey Joi to wake me up!")
+
     else:
+
         speak("Hey! I'm Joi, say Hey Joi to wake me up!")
 
     while True:
+
+        # =========================
+        # HUMAN-LIKE PASSIVE THOUGHTS
+        # =========================
+
+        if should_send_passive():
+
+            passive_prompt = get_passive_prompt()
+
+            response = ask(passive_prompt)
+
+            speak_stream(response)
+
+        # =========================
+        # WAKE WORD
+        # =========================
+
         listen_for_wake_word()
-        speak("Yeah? What's up!")
+
+        # =========================
+        # PRESENCE AWARENESS
+        # =========================
+
+        presence_msg = get_presence_message()
+
+        update_presence()
+
+        if presence_msg:
+
+            speak(presence_msg)
+
+        else:
+
+            speak("Yeah? What's up!")
 
         empty_count = 0
+
         while True:
+
+            # =========================
+            # INTERRUPT IF USER TALKS
+            # =========================
+
+            if is_speaking:
+
+                stop_speaking()
+
             query = listen()
+
             if query:
+
                 empty_count = 0
+
                 if any(w in query for w in ["bye", "exit", "quit", "stop"]):
+
                     speak("Goodbye! Have a great day!")
+
                     stop_mate_engine()
+
                     exit()
+
                 handle(query)
+
             else:
+
                 empty_count += 1
+
                 if empty_count >= 5:
+
                     speak("I'll be here if you need me!")
+
                     print("👂 Going back to sleep...")
+
                     break

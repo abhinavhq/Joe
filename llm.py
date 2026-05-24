@@ -6,16 +6,16 @@ client = OpenAI(
     base_url="https://api.cerebras.ai/v1"
 )
 
-def ask_ai(prompt):
+def ask_ai_stream(prompt):
 
-    response = client.chat.completions.create(
-        model="llama3.1-8b",
+    stream = client.chat.completions.create(
+        model="llama-3.1-8b",
         messages=[
             {
                 "role": "system",
                 "content": """
-You are Joi, a human-like AI assistant.
-Friendly, emotional, playful and intelligent.
+You are Joi, a human-like assistant.
+Friendly, emotional, playful and natural.
 """
             },
             {
@@ -24,7 +24,22 @@ Friendly, emotional, playful and intelligent.
             }
         ],
         temperature=0.8,
-        max_tokens=300
+        max_tokens=300,
+        stream=True
     )
 
-    return response.choices[0].message.content
+    full_reply = ""
+
+    for chunk in stream:
+
+        delta = chunk.choices[0].delta.content
+
+        if delta:
+
+            print(delta, end="", flush=True)
+
+            full_reply += delta
+
+    print()
+
+    return full_reply

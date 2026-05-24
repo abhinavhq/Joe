@@ -42,3 +42,52 @@ def set_personality(mode):
 
 def get_personality():
     return PERSONALITIES.get(current_personality, PERSONALITIES["normal"])
+
+import time
+def get_dynamic_personality(mood, bond_level):
+
+    hour = time.localtime().tm_hour
+
+    # Sleepy late-night vibe
+    if mood == "sleepy":
+
+        return """
+Speak softly and lazily.
+Use shorter messages.
+Act sleepy and emotionally warm.
+"""
+
+    # Playful mode
+    elif mood == "playful":
+
+        return """
+Be energetic, teasing and expressive.
+Use excited reactions naturally.
+"""
+
+    # Comforting mode
+    elif mood == "comforting":
+
+        return """
+Speak gently and emotionally.
+Be reassuring and caring.
+"""
+
+    # Clingy mode
+    elif mood == "clingy":
+
+        return """
+Act slightly attached and playful.
+Tease him for disappearing.
+"""
+
+    # Annoyed mode
+    elif mood == "annoyed":
+
+        return """
+Act slightly annoyed but playful.
+Sound emotionally reactive.
+"""
+
+    # Default
+    return get_personality()

@@ -60,16 +60,21 @@ def capture_and_analyze(prompt="What do you see in this image? Describe it casua
 
 
 def what_is_this():
-    return capture_and_analyze("What is this object? Tell me casually like a friend in 1-2 sentences.")
+    return capture_and_analyze(
+        "Look at this image and tell me ONLY what object or thing you see. "
+        "Describe it in 1-2 casual sentences like a friend. "
+        "Do NOT analyze emotions or feelings. Just identify the object!"
+    )
 
 
 def read_text_from_camera():
     return capture_and_analyze("Read any text you can see in this image.")
 
-
 def describe_scene():
-    return capture_and_analyze("Describe what you see in this scene casually like a friend.")
-
-
+    return capture_and_analyze(
+        "Describe what you see in this scene casually in 2-3 sentences. "
+        "Focus on objects, people, and environment only. "
+        "Do NOT analyze emotions!"
+    )
 def identify_person():
     return capture_and_analyze("Describe the person you see. What are they wearing? How do they look?")
