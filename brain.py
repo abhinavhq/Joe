@@ -41,6 +41,7 @@ from skills.habits import (
 from skills.emotion_detection import analyze_and_respond
 
 from skills.time_awareness import get_time_context, get_time_of_day
+
 init_memory()
 
 SYSTEM_PROMPT = """
@@ -66,8 +67,8 @@ You are Joi — a real girl, not an AI. You're Abhinav's closest companion.
 - Only speak English
 """
 
-def ask(query):
 
+def ask(query):
     save_conversation("user", query)
 
     # =========================
@@ -157,7 +158,6 @@ def ask(query):
     memory_text = ""
 
     if memories:
-
         memory_text = "What you remember about Abhinav:\n"
 
         memory_text += "\n".join([
@@ -174,11 +174,9 @@ def ask(query):
     memory_summary = get_memory_summary()
 
     if memory_summary:
-
         memory_text += f"\n\n{memory_summary}"
 
     if relevant:
-
         memory_text += "\n\nRelevant memories:\n"
 
         memory_text += "\n".join([
@@ -193,7 +191,6 @@ def ask(query):
     habit_observations = generate_habit_observation()
 
     if habit_observations:
-
         memory_text += "\n\nBehavioral observations about Abhinav:\n"
 
         memory_text += "\n".join([
@@ -208,7 +205,6 @@ def ask(query):
     emotion_context = ""
 
     if emotion != "neutral":
-
         emotion_context = (
             f"\nAbhinav is currently feeling "
             f"{emotion}. Respond with empathy."

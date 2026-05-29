@@ -1,13 +1,15 @@
-import edge_tts
+from cartesia import Cartesia
 import asyncio
 import pygame as pg
 import os
 import tempfile
-import threading
 import re
 import time
 
-VOICE = "en-US-AriaNeural"
+client = Cartesia(api_key="sk_car_MmRpUuXpfqmrUNw4y4BXyq"
+)
+
+VOICE_ID = "694f9389-aac1-45b6-b726-9d9369183238"
 
 # Voice profiles based on emotion
 VOICE_PROFILES = {
@@ -29,85 +31,101 @@ current_emotion = "normal"
 _mixer_init = False
 is_speaking = False
 
+
 def set_voice_emotion(emotion):
     global current_emotion
+
     if emotion in VOICE_PROFILES:
         current_emotion = emotion
         print(f"🎙️ Voice emotion: {emotion}")
 
+
 def get_voice_profile():
     return VOICE_PROFILES.get(current_emotion, VOICE_PROFILES["normal"])
 
+
 def stop_speaking():
     global is_speaking
+
     is_speaking = False
+
     try:
         pg.mixer.music.stop()
     except:
         pass
 
+
 async def _speak_async(text):
     global _mixer_init, is_speaking
 
-    profile = get_voice_profile()
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
         tmp_path = f.name
 
     try:
-        communicate = edge_tts.Communicate(
-            text,
-            VOICE,
-            rate=profile["rate"],
-            pitch=profile["pitch"],
-            volume=profile["volume"]
+        audio = client.tts.bytes(
+            model_id="sonic-2",
+            transcript=text,
+            voice={
+                "mode": "id",
+                "id": VOICE_ID
+            },
+            language="en",
+            output_format={
+                "container": "wav",
+                "encoding": "pcm_f32le",
+                "sample_rate": 44100,
+            },
         )
-        await communicate.save(tmp_path)
+
+        with open(tmp_path, "wb") as audio_file:
+            for chunk in audio:
+                audio_file.write(chunk)
 
         if not _mixer_init:
             pg.mixer.init()
             _mixer_init = True
 
         pg.mixer.music.load(tmp_path)
+
         is_speaking = True
+
         pg.mixer.music.play()
 
         while pg.mixer.music.get_busy():
             if not is_speaking:
                 pg.mixer.music.stop()
                 break
+
             pg.time.wait(100)
 
         pg.mixer.music.unload()
 
     finally:
         is_speaking = False
+
         try:
             os.remove(tmp_path)
         except:
             pass
 
+
 def speak(text):
-    global is_speaking
     print(f"JOI: {text}")
+
     try:
         asyncio.run(_speak_async(text))
+
     except Exception as e:
-        import pyttsx3
-        engine = pyttsx3.init()
-        voices = engine.getProperty('voices')
-        for voice in voices:
-            if 'female' in voice.name.lower() or 'zira' in voice.name.lower():
-                engine.setProperty('voice', voice.id)
-                break
-        engine.setProperty('rate', 175)
-        engine.say(text)
-        engine.runAndWait()
+        print(f"Voice error: {e}")
+
 
 def speak_stream(text):
     parts = re.split(r'(?<=[.!?]) +', text)
+
     for part in parts:
         if not part.strip():
             continue
+
         speak(part)
+
         time.sleep(0.2)
