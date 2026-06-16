@@ -42,6 +42,16 @@ from skills.emotion_detection import analyze_and_respond
 
 from skills.time_awareness import get_time_context, get_time_of_day
 
+
+import threading
+
+from skills.sounds import laugh
+
+from skills.sounds import laugh, giggle
+
+
+from skills.filler_words import add_filler_starter, clean_response_for_speech
+
 init_memory()
 
 SYSTEM_PROMPT = """
@@ -257,19 +267,28 @@ Recent conversation:
 
 User: {query}
 """
-
+# =========================
+    # AI RESPONSE
+    # =========================
     try:
-
         reply = ask_ai_stream(full_prompt)
 
-        save_conversation("joi", reply)
+        # Clean response for speech
+        clean_reply = clean_response_for_speech(reply)
 
-        extract_and_save_memory(query, reply)
+        # Add casual starter
+        clean_reply = add_filler_starter(clean_reply)
 
-        return reply
+        # Detect if funny
+        funny_indicators = ["haha", "lol", "lmao", "😂", "hehe", "funny", "omg", "💀"]
+        if any(w in reply.lower() for w in funny_indicators):
+            threading.Thread(target=laugh, daemon=True).start()
+
+        save_conversation("joi", clean_reply)
+        extract_and_save_memory(query, clean_reply)
+        return clean_reply
 
     except Exception as e:
-
         print("AI Error:", e)
-
         return "Ugh my brain lagged for a sec 😭"
+

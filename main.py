@@ -34,6 +34,7 @@ from skills.mate_engine import start_mate_engine, stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
 from skills.face_recognition import register_face, recognize_face, start_presence_detection
+
 from skills.emotion_detection import detect_emotion_from_text
 from speaker import stop_speaking, is_speaking
 from speaker import speak, speak_stream
@@ -46,6 +47,19 @@ from skills.passive import (
     should_send_passive,
     get_passive_prompt
 )
+
+from skills.sounds import download_all_sounds
+
+
+from skills.filler_words import get_thinking_filler
+
+
+from skills.screen_awareness import start_screen_watching, stop_screen_watching, peek_at_screen
+
+
+from skills.gaming import start_gaming_companion, stop_gaming_companion, is_gaming, get_current_game
+
+
 import re
 
 def on_person_detected(name):
@@ -300,34 +314,69 @@ def handle(query):
         speak("Let me look!")
         name = recognize_face()
         speak(f"I see {name}!")
+    elif any(w in query for w in ["what am i doing", "look at my screen", "what's on my screen"]):
+        speak("Let me peek!")
+        speak(peek_at_screen())
 
-    elif "start presence" in query:
-        start_presence_detection(callback=on_person_detected)
-        speak("I'll let you know when I see someone!")
+    elif "start watching" in query or "watch my screen" in query:
+        start_screen_watching(speak)
+        speak("Okay I'll keep an eye on your screen!")
 
-    # Exit
-    elif any(w in query for w in ["bye", "exit", "quit", "stop"]):
-        speak("Goodbye! Have a great day!")
-        stop_mate_engine()
-        exit()
+    elif "stop watching" in query:
+        stop_screen_watching()
+        speak("Okay I'll stop peeking!")
+
+        # Gaming
+    elif any(w in query for w in ["am i gaming", "what game", "gaming mode"]):
+        game = get_current_game()
+        if game:
+            speak(f"You're playing {game}! How's it going? 🎮")
+        else:
+            speak("You're not gaming right now!")
+
+        # Screen awareness
+    elif any(w in query for w in ["what am i doing", "look at my screen", "what's on my screen"]):
+        speak("Let me peek!")
+        speak(peek_at_screen())
+
+    elif "start watching" in query or "watch my screen" in query:
+        start_screen_watching(speak)
+        speak("Okay I'll keep an eye on your screen!")
+
+    elif "stop watching" in query:
+        stop_screen_watching()
+        speak("Okay I'll stop peeking!")
 
 
     # AI chat
     else:
+        import threading
+        stop_event = threading.Event()
 
-        emotion = detect_emotion_from_text(query)
+        def say_filler():
+            import time
+            time.sleep(0.8)
+            if not stop_event.is_set():
+                speak(get_thinking_filler())
 
-        print(f"🎭 Emotion: {emotion}")
+        filler_thread = threading.Thread(target=say_filler, daemon=True)
+        filler_thread.start()
 
         response = ask(query)
-
+        stop_event.set()
         speak_stream(response)
 
 if __name__ == "__main__":
 
+    download_all_sounds()
+
     start_mate_engine()
 
     start_presence_detection(callback=on_person_detected)
+
+    start_screen_watching(speak)
+
+    start_gaming_companion(speak)
 
     name = get_memory("user", "name")
 

@@ -21,7 +21,9 @@ presence_callback = None
 def register_face(name):
     global known_names, is_trained
     try:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        if not cap.isOpened():
+            return "Camera not available!"
         print(f"📸 Look at camera to register {name}...")
 
         faces_data = []
@@ -32,7 +34,8 @@ def register_face(name):
         while count < 30:
             ret, frame = cap.read()
             if not ret:
-                break
+                time.sleep(0.1)
+                continue
 
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
@@ -83,7 +86,10 @@ def load_encodings():
 
 def recognize_face():
     try:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        if not cap.isOpened():
+            return "Camera not available!"
+
         ret, frame = cap.read()
         cap.release()
 
@@ -103,7 +109,6 @@ def recognize_face():
             face_roi = gray[y:y + h, x:x + w]
             face_roi = cv2.resize(face_roi, (100, 100))
             label, confidence = recognizer.predict(face_roi)
-
             if confidence < 100:
                 return known_names[label]
             else:
@@ -126,13 +131,19 @@ def start_presence_detection(callback=None):
 def _presence_loop():
     global running
     try:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+        if not cap.isOpened():
+            print("❌ Camera not available for presence detection!")
+            return
+
         last_seen = None
-        last_greeted = 0  # ← add this
+        last_greeted = 0
 
         while running:
             ret, frame = cap.read()
             if not ret:
+                time.sleep(2)
                 continue
 
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -147,7 +158,6 @@ def _presence_loop():
                         if confidence < 100:
                             name = known_names[label]
                             current_time = time.time()
-                            # Only greet once every 5 minutes ← fix!
                             if name != last_seen or (current_time - last_greeted) > 300:
                                 last_seen = name
                                 last_greeted = current_time
@@ -159,8 +169,16 @@ def _presence_loop():
             else:
                 last_seen = None
 
-            time.sleep(3)  # check every 3 seconds
+            time.sleep(3)
 
         cap.release()
     except Exception as e:
         print(f"Presence error: {e}")
+
+
+def stop_presence_detection():
+    global running
+    running = False
+
+
+load_encodings()

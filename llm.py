@@ -7,9 +7,8 @@ client = OpenAI(
 )
 
 def ask_ai_stream(prompt):
-
     stream = client.chat.completions.create(
-        model="llama-3.1-8b",
+        model="gpt-oss-120b",  # fastest and smartest!
         messages=[
             {
                 "role": "system",
@@ -31,15 +30,10 @@ Friendly, emotional, playful and natural.
     full_reply = ""
 
     for chunk in stream:
-
         delta = chunk.choices[0].delta.content
-
         if delta:
-
             print(delta, end="", flush=True)
-
             full_reply += delta
 
     print()
-
     return full_reply
