@@ -35,7 +35,10 @@ from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
 from skills.face_recognition import register_face, recognize_face, start_presence_detection
 
+
+
 from skills.emotion_detection import detect_emotion_from_text
+
 from speaker import stop_speaking, is_speaking
 from speaker import speak, speak_stream
 
@@ -59,6 +62,24 @@ from skills.screen_awareness import start_screen_watching, stop_screen_watching,
 
 from skills.gaming import start_gaming_companion, stop_gaming_companion, is_gaming, get_current_game
 
+from skills.proactive import should_send_passive, get_passive_prompt
+import threading
+import time
+
+from skills.system_controls import (
+    volume_up, volume_down, mute, unmute, get_volume_level, set_volume,
+    media_pause, media_next, media_prev, media_stop,
+    get_brightness, set_brightness, brightness_up, brightness_down,
+    shutdown, restart, sleep, hibernate, log_off,
+    cancel_shutdown, lock_pc, unlock_pc,
+    open_task_manager, empty_recycle_bin, take_screenshot_quick,
+    open_control_panel, open_settings, toggle_wifi,
+    open_file_explorer, minimize_all_windows
+)
+
+
+from skills.finance import format_crypto_report, format_stock_report, get_market_overview
+from brain import get_financial_analysis
 
 import re
 
@@ -69,6 +90,40 @@ def on_person_detected(name):
         speak("Hey, who are you?")
 
 atexit.register(stop_mate_engine)
+
+
+def proactive_loop():  # ← ADD HERE
+    def _loop():
+        while True:
+            time.sleep(60)
+            try:
+                if should_send_passive():
+                    from llm import ask_ai_stream
+                    from skills.time_awareness import get_time_of_day
+                    tod = get_time_of_day()
+                    prompt = get_passive_prompt()
+                    full_prompt = f"""
+{prompt}
+
+It is currently {tod}.
+You are Joi, talking to Abhinav.
+Say something short, natural and human — 1 sentence only.
+No quotes, no explanation, just say it naturally.
+"""
+                    message = ask_ai_stream(full_prompt)
+                    if message:
+                        speak(message)
+            except Exception as e:
+                print(f"Proactive error: {e}")
+
+    thread = threading.Thread(target=_loop, daemon=True)
+    thread.start()
+    print("✅ Proactive messages started!")
+
+def handle(query):
+    if not query:
+        return
+    ...
 
 def handle(query):
     if not query:
@@ -217,17 +272,35 @@ def handle(query):
         result = search_web_info(query.replace("search info", "").replace("find info", "").replace("look up info", "").replace("get info", "").strip())
         speak(result)
 
-    # Volume controls
-    elif any(w in query for w in ["volume up", "increase volume", "louder", "turn up"]):
+     # Volume
+    elif any(w in query for w in
+                 ["volume up", "increase volume", "louder", "turn up", "increase the volume", "turn the volume up"]):
         speak(volume_up())
 
-    elif any(w in query for w in ["volume down", "decrease volume", "quieter", "turn down"]):
+    elif any(w in query for w in
+             ["volume down", "decrease volume", "quieter", "turn down", "decrease the volume", "turn the volume down"]):
         speak(volume_down())
 
-    elif any(w in query for w in ["mute", "silence"]):
+    elif "unmute" in query:
+        speak(unmute())
+
+    elif "mute" in query:
         speak(mute())
 
-    # Media controls
+    elif "what's my volume" in query or "current volume" in query or "volume level" in query:
+        speak(get_volume_level())
+
+    # Brightness
+    elif "brightness up" in query or "increase brightness" in query:
+        speak(brightness_up())
+
+    elif "brightness down" in query or "decrease brightness" in query:
+        speak(brightness_down())
+
+    elif "what's my brightness" in query or "current brightness" in query:
+        speak(get_brightness())
+
+    # Media
     elif any(w in query for w in ["pause", "resume", "play pause"]):
         speak(media_pause())
 
@@ -237,6 +310,61 @@ def handle(query):
     elif any(w in query for w in ["previous song", "prev track"]):
         speak(media_prev())
 
+    elif "stop music" in query or "stop media" in query:
+        speak(media_stop())
+
+    # Power
+    elif "unlock" in query:
+        speak(unlock_pc())
+
+    elif "lock" in query or "lock pc" in query:
+        speak(lock_pc())
+
+    elif "shutdown" in query or "turn off pc" in query:
+        speak(shutdown())
+
+    elif "restart" in query or "reboot" in query:
+        speak(restart())
+
+    elif "hibernate" in query:
+        speak(hibernate())
+
+    elif "sleep" in query:
+        speak(sleep())
+
+    elif "log off" in query or "log out" in query:
+        speak(log_off())
+
+    elif "cancel shutdown" in query:
+        speak(cancel_shutdown())
+
+    # Utility
+    elif "task manager" in query:
+        speak(open_task_manager())
+
+    elif "empty recycle bin" in query or "clear recycle bin" in query:
+        speak(empty_recycle_bin())
+
+    elif "take a screenshot" in query or "quick screenshot" in query:
+        speak(take_screenshot_quick())
+
+    elif "control panel" in query:
+        speak(open_control_panel())
+
+    elif "open settings" in query:
+        speak(open_settings())
+
+    elif "turn on wifi" in query or "enable wifi" in query:
+        speak(toggle_wifi("on"))
+
+    elif "turn off wifi" in query or "disable wifi" in query:
+        speak(toggle_wifi("off"))
+
+    elif "file explorer" in query or "open explorer" in query:
+        speak(open_file_explorer())
+
+    elif "minimize everything" in query or "minimize all" in query or "show desktop" in query:
+        speak(minimize_all_windows())
     # Music
     elif any(w in query for w in ["play", "music", "song"]):
         speak(play_music(query))
@@ -347,8 +475,48 @@ def handle(query):
         stop_screen_watching()
         speak("Okay I'll stop peeking!")
 
+        # Crypto & Stocks
+    elif "market overview" in query or "crypto market" in query:
+        speak("Let me check the market!")
+        speak(get_market_overview())
 
-    # AI chat
+    elif any(w in query for w in ["price", "stock", "crypto", "bitcoin", "worth"]) and not any(
+            w in query for w in ["go to", "browse"]):
+        speak("Let me check that for you!")
+
+        from skills.finance import COIN_IDS, STOCK_SYMBOLS
+
+        found_asset = None
+        asset_type = None
+
+        for name in COIN_IDS:
+            if name in query:
+                found_asset = name
+                asset_type = "crypto"
+                break
+
+        if not found_asset:
+            for name in STOCK_SYMBOLS:
+                if name in query:
+                    found_asset = name
+                    asset_type = "stock"
+                    break
+
+        if found_asset:
+            if asset_type == "crypto":
+                report = format_crypto_report(found_asset)
+            else:
+                report = format_stock_report(found_asset)
+
+            speak(report)
+
+            analysis = get_financial_analysis(asset_type, found_asset, report)
+            if analysis:
+                speak(analysis)
+        else:
+            speak("Which coin or stock do you want to check? Try saying the name clearly!")
+
+        # AI chat
     else:
         import threading
         stop_event = threading.Event()
@@ -377,6 +545,8 @@ if __name__ == "__main__":
     start_screen_watching(speak)
 
     start_gaming_companion(speak)
+
+    proactive_loop()
 
     name = get_memory("user", "name")
 

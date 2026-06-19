@@ -52,6 +52,26 @@ from skills.sounds import laugh, giggle
 
 from skills.filler_words import add_filler_starter, clean_response_for_speech
 
+from skills.finance import format_crypto_report, format_stock_report, get_market_overview
+
+def get_financial_analysis(asset_type, asset_name, raw_report):
+    """Use AI to add a casual prediction/outlook on top of the raw data"""
+    prompt = f"""
+You are Joi giving your honest take on {asset_name} ({asset_type}) based on this data:
+
+{raw_report}
+
+Give a SHORT casual outlook (2-3 sentences) like a friend who knows finance. 
+Mention whether it looks bullish, bearish, or uncertain short-term.
+Always end with: "but obviously not financial advice, do your own research!"
+Be casual, use "ngl", "tbh" etc. Talk like Joi, not a robot.
+"""
+    try:
+        from llm import ask_ai_stream
+        return ask_ai_stream(prompt)
+    except:
+        return ""
+
 init_memory()
 
 SYSTEM_PROMPT = """

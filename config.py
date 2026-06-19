@@ -50,6 +50,8 @@ CEREBRAS_API_KEY = "csk-ttv842pdxtcxec64jn9rdj3we2td29kh3jn6ddkjvempdymk"
 
 CARTESIA_API_KEY = "sk_car_84Gv3EmjBw5RjiGT4pCghA"
 
+ALPHA_VANTAGE_API_KEY = "ZHHGP9C8SNXLESFK"
+
 # WEATHER_API_KEY = "95388efab77661cbf445d845a9d672ac"
 ASSISTANT_NAME = "JOI"
 CITY = "Bengaluru"
