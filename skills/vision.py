@@ -3,6 +3,7 @@ import base64
 import urllib.request
 import json
 
+
 from config import CEREBRAS_API_KEY
 
 def capture_and_analyze(prompt="What do you see in this image? Describe it casually like a friend."):
@@ -18,15 +19,11 @@ def capture_and_analyze(prompt="What do you see in this image? Describe it casua
         if not ret:
             return "Couldn't capture image!"
 
-        # Resize smaller to avoid 400 error
         frame = cv2.resize(frame, (320, 240))
-
-        # Convert to base64
         _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
         image_base64 = base64.b64encode(buffer).decode('utf-8')
 
-        # Use Gemini Vision with correct key
-        key = CEREBRAS_API_KEY
+        key = GEMINI_API_KEYS[0]
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
 
         data = json.dumps({
@@ -47,7 +44,7 @@ def capture_and_analyze(prompt="What do you see in this image? Describe it casua
             url, data=data,
             headers={"Content-Type": "application/json"}
         )
-        response = urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req, timeout=15)
         result = json.loads(response.read())
         return result["candidates"][0]["content"]["parts"][0]["text"]
 

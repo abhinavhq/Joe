@@ -5,6 +5,9 @@ import json
 import threading
 import time
 import random
+import io
+
+
 
 from config import CEREBRAS_API_KEY
 
@@ -21,10 +24,10 @@ SCREEN_PROMPTS = [
 def capture_screen_base64():
     try:
         screenshot = pyautogui.screenshot()
-        import io
-        from PIL import Image
+        # Resize small to avoid 400 errors
+        screenshot = screenshot.resize((480, 270))
         buffer = io.BytesIO()
-        screenshot.save(buffer, format='JPEG', quality=50)
+        screenshot.save(buffer, format='JPEG', quality=15)
         buffer.seek(0)
         return base64.b64encode(buffer.read()).decode('utf-8')
     except Exception as e:
@@ -37,7 +40,7 @@ def analyze_screen():
         if not image_data:
             return None
 
-        key =  CEREBRAS_API_KEY
+        key = CEREBRAS_API_KEY
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
 
         prompt = random.choice(SCREEN_PROMPTS)
@@ -80,7 +83,7 @@ def start_screen_watching(speak_func, interval=300):
 
 def _watch_loop(speak_func, interval):
     global screen_watching, last_comment_time
-    time.sleep(30)  # wait 30 secs before first comment
+    time.sleep(30)
 
     while screen_watching:
         try:
