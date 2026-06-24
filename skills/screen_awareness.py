@@ -1,33 +1,32 @@
 import pyautogui
 import base64
-import urllib.request
+import requests
 import json
 import threading
 import time
 import random
 import io
 
-
-
-from config import CEREBRAS_API_KEY
+OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_MODEL = "gemma3:4b"
 
 screen_watching = False
 last_comment_time = 0
-COMMENT_INTERVAL = 300  # comment every 5 minutes
+COMMENT_INTERVAL = 300
 
 SCREEN_PROMPTS = [
     "Look at this screenshot. What is the person doing? React naturally like a girlfriend seeing her boyfriend's screen. Be casual, short, 1 sentence.",
     "Look at this screenshot. Comment on what you see like a close friend peeking at someone's screen. Be funny or caring. 1 sentence only.",
     "What do you see on this screen? React like a real girl would. Short and natural.",
+    "Peek at this screenshot and react like you're his girlfriend checking what he's up to. 1 sentence, casual.",
 ]
 
 def capture_screen_base64():
     try:
         screenshot = pyautogui.screenshot()
-        # Resize small to avoid 400 errors
-        screenshot = screenshot.resize((480, 270))
+        screenshot = screenshot.resize((800, 450))
         buffer = io.BytesIO()
-        screenshot.save(buffer, format='JPEG', quality=15)
+        screenshot.save(buffer, format='JPEG', quality=50)
         buffer.seek(0)
         return base64.b64encode(buffer.read()).decode('utf-8')
     except Exception as e:
@@ -40,32 +39,18 @@ def analyze_screen():
         if not image_data:
             return None
 
-        key = CEREBRAS_API_KEY
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
-
         prompt = random.choice(SCREEN_PROMPTS)
 
-        data = json.dumps({
-            "contents": [{
-                "parts": [
-                    {
-                        "inline_data": {
-                            "mime_type": "image/jpeg",
-                            "data": image_data
-                        }
-                    },
-                    {"text": prompt}
-                ]
-            }]
-        }).encode()
+        payload = {
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "images": [image_data],
+            "stream": False
+        }
 
-        req = urllib.request.Request(
-            url, data=data,
-            headers={"Content-Type": "application/json"}
-        )
-        response = urllib.request.urlopen(req)
-        result = json.loads(response.read())
-        return result["candidates"][0]["content"]["parts"][0]["text"]
+        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        result = response.json()
+        return result.get("response", None)
     except Exception as e:
         print(f"Screen analysis error: {e}")
         return None
@@ -83,7 +68,7 @@ def start_screen_watching(speak_func, interval=300):
 
 def _watch_loop(speak_func, interval):
     global screen_watching, last_comment_time
-    time.sleep(30)
+    time.sleep(60)  # wait 1 min before first comment
 
     while screen_watching:
         try:

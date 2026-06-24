@@ -261,7 +261,7 @@ def handle(query):
             speak("I don't have that contact!")
 
     # Wikipedia
-    elif any(w in query for w in ["wikipedia", "wiki", "who is", "what is", "tell me about", "explain"]):
+    elif any(w in query for w in ["wikipedia", "wiki"]) or query.startswith("who is ") or query.startswith( "what is ") and len(query) > 10:
         speak("Let me look that up!")
         result = search_wikipedia(query.replace("wikipedia", "").replace("wiki", "").replace("who is", "").replace("what is", "").replace("tell me about", "").replace("explain", "").strip())
         speak(result)
