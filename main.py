@@ -23,18 +23,26 @@ from skills.browser import (
 from skills.system_info import get_system_info, get_battery, get_cpu, get_ram, get_disk
 from skills.screenshot_ocr import take_screenshot, read_screen
 from skills.whatsapp import send_whatsapp_now
+
+
 from skills.system_controls import (
     volume_up, volume_down, mute,
     media_pause, media_next, media_prev,
     shutdown, restart, sleep,
     cancel_shutdown, lock_pc
 )
+
+
+from skills.vision import (
+    what_is_this, describe_scene, read_text_from_camera,
+    identify_person, identify_food, read_document,
+    read_screen_content, identify_anime_character, check_surroundings
+)
 from skills.knowledge import search_wikipedia, search_web_info
 from skills.mate_engine import start_mate_engine, stop_mate_engine
 from skills.vision import what_is_this, describe_scene, read_text_from_camera
 import atexit
 from skills.face_recognition import register_face, recognize_face, start_presence_detection
-
 
 
 from skills.emotion_detection import detect_emotion_from_text
@@ -51,6 +59,12 @@ from skills.passive import (
     get_passive_prompt
 )
 
+
+from skills.maps import (
+    get_directions, find_nearby, get_location_info,
+    search_on_maps, get_distance
+)
+
 from skills.sounds import download_all_sounds
 
 
@@ -60,7 +74,12 @@ from skills.filler_words import get_thinking_filler
 from skills.screen_awareness import start_screen_watching, stop_screen_watching, peek_at_screen
 
 
-from skills.gaming import start_gaming_companion, stop_gaming_companion, is_gaming, get_current_game
+from skills.gaming import (
+    start_gaming_companion,
+    stop_gaming_companion,
+    is_gaming,
+    get_current_game
+)
 
 from skills.proactive import should_send_passive, get_passive_prompt
 import threading
@@ -180,20 +199,38 @@ def handle(query):
     elif any(w in query for w in ["read screen", "what's on screen", "read my screen"]):
         speak(read_screen())
 
-    # Vision — make sure these are HIGH UP in handle()!
-    elif any(w in query for w in
-                 ["what is this", "what do you see", "look at this", "look at my hand", "what am i holding",
-                  "what's in my hand"]):
+    # Vision commands
+    elif any(w in query for w in ["what is this", "look at this", "what do you see", "can you look"]):
         speak("Let me look!")
         speak(what_is_this())
 
-    elif any(w in query for w in ["look around", "describe what you see", "what's around"]):
-        speak("Looking around!")
-        speak(describe_scene())
+    elif any(w in query for w in ["who is this", "who do you see", "identify person"]):
+        speak("Let me look at them!")
+        speak(identify_person())
+
+    elif any(w in query for w in ["what anime", "which character", "identify character", "which anime"]):
+        speak("Let me check!")
+        speak(identify_anime_character())
+
+    elif any(w in query for w in ["what food", "what am i eating", "identify food"]):
+        speak("Let me see!")
+        speak(identify_food())
 
     elif any(w in query for w in ["read this", "what does it say", "read the text"]):
         speak("Let me read that!")
         speak(read_text_from_camera())
+
+    elif any(w in query for w in ["read document", "read this paper", "read this page"]):
+        speak("Let me read that document!")
+        speak(read_document())
+
+    elif any(w in query for w in ["what's on screen", "read the screen", "whats on screen"]):
+        speak("Let me check your screen!")
+        speak(read_screen_content())
+
+    elif any(w in query for w in ["describe", "look around", "check surroundings", "what's around"]):
+        speak("Looking around!")
+        speak(check_surroundings())
     # Browser
     elif "go to" in query or "browse" in query:
         site = query.replace("go to", "").replace("browse", "").strip()
@@ -515,6 +552,34 @@ def handle(query):
                 speak(analysis)
         else:
             speak("Which coin or stock do you want to check? Try saying the name clearly!")
+
+     # Maps & GPS
+    elif any(w in query for w in ["where am i", "my location", "current location"]):
+            speak(get_location_info())
+
+    elif any(w in query for w in ["directions to", "how to get to", "navigate to", "take me to"]):
+        destination = query.replace("directions to", "").replace("how to get to", "").replace("navigate to",
+                                                                                              "").replace("take me to",
+                                                                                                          "").strip()
+        speak("Let me get directions!")
+        speak(get_directions(destination))
+
+    elif any(w in query for w in ["find nearby", "near me", "closest", "nearest"]):
+        place = query.replace("find nearby", "").replace("near me", "").replace("closest", "").replace("nearest",
+                                                                                                       "").replace(
+            "find", "").strip()
+        speak(f"Finding {place} near you!")
+        speak(find_nearby(place))
+
+    elif any(w in query for w in ["how far is", "distance to", "how far"]):
+        destination = query.replace("how far is", "").replace("distance to", "").replace("how far", "").strip()
+        speak("Let me check!")
+        speak(get_distance(destination))
+
+    elif "search maps" in query or "open maps" in query:
+        search_query = query.replace("search maps", "").replace("open maps", "").strip()
+        speak(search_on_maps(search_query if search_query else "Bengaluru"))
+
 
         # AI chat
     else:

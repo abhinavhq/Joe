@@ -2,7 +2,6 @@ import psutil
 import threading
 import time
 import random
-import subprocess
 
 GAMES = {
     "roblox": "RobloxPlayerBeta.exe",
@@ -61,44 +60,88 @@ GAMING_COMMENTS = [
 
 gaming_active = False
 current_game = None
+gaming_thread = None
+
+
+# Optional hooks (avoid NameError if not imported elsewhere)
+def can_background_speak():
+    return True
+
+
+def mark_joi_spoke():
+    pass
+
 
 def get_running_games():
     running = []
-    for process in psutil.process_iter(['name']):
+
+    for process in psutil.process_iter(["name"]):
         try:
-            pname = process.info['name'].lower()
+            pname = (process.info["name"] or "").lower()
+
             for game, exe in GAMES.items():
-                if exe.lower() in pname:
+                if exe.lower() == pname:
                     running.append(game)
-        except:
-            pass
+
+        except (psutil.NoSuchProcess,
+                psutil.AccessDenied,
+                psutil.ZombieProcess):
+            continue
+
     return running
+
 
 def detect_game():
     games = get_running_games()
     return games[0] if games else None
 
+
 def get_game_reaction(game):
-    if game in GAME_REACTIONS:
-        return random.choice(GAME_REACTIONS[game])
-    return random.choice(GAME_REACTIONS["default"])
+    return random.choice(GAME_REACTIONS.get(game, GAME_REACTIONS["default"]))
+
 
 def get_gaming_comment():
     return random.choice(GAMING_COMMENTS)
 
+
+def is_gaming():
+    return gaming_active
+
+
+def get_current_game():
+    return current_game
+
+
 def start_gaming_companion(speak_func):
-    global gaming_active
+    global gaming_active, gaming_thread
+
+    if gaming_active:
+        return
+
     gaming_active = True
-    thread = threading.Thread(
+
+    gaming_thread = threading.Thread(
         target=_gaming_loop,
         args=(speak_func,),
         daemon=True
     )
-    thread.start()
+    gaming_thread.start()
+
     print("✅ Gaming companion started!")
+
+
+def stop_gaming_companion():
+    global gaming_active, current_game
+
+    gaming_active = False
+    current_game = None
+
+    print("🛑 Gaming companion stopped.")
+
 
 def _gaming_loop(speak_func):
     global gaming_active, current_game
+
     last_comment = time.time()
     last_game = None
 
@@ -106,39 +149,33 @@ def _gaming_loop(speak_func):
         try:
             game = detect_game()
 
-            # New game detected!
             if game and game != last_game:
                 current_game = game
                 last_game = game
-                reaction = get_game_reaction(game)
-                print(f"🎮 Game detected: {game}")
-                speak_func(reaction)
+
+                if can_background_speak():
+                    speak_func(get_game_reaction(game))
+                    mark_joi_spoke()
+
                 last_comment = time.time()
 
-            # Game closed
             elif not game and last_game:
+                if can_background_speak():
+                    speak_func("Aww you stopped playing! How was it?")
+                    mark_joi_spoke()
+
                 last_game = None
                 current_game = None
-                speak_func("aw you stopped playing! how was it? 🎮")
 
-            # Random comment while gaming
-            elif game and (time.time() - last_comment) > 600:
-                comment = get_gaming_comment()
-                speak_func(comment)
+            elif game and time.time() - last_comment >= 600:
+                if can_background_speak():
+                    speak_func(get_gaming_comment())
+                    mark_joi_spoke()
+
                 last_comment = time.time()
 
             time.sleep(10)
 
         except Exception as e:
-            print(f"Gaming error: {e}")
-            time.sleep(30)
-
-def stop_gaming_companion():
-    global gaming_active
-    gaming_active = False
-
-def is_gaming():
-    return current_game is not None
-
-def get_current_game():
-    return current_game
+            print(f"Gaming companion error: {e}")
+            time.sleep(10)

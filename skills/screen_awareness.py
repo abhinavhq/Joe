@@ -1,14 +1,19 @@
 import pyautogui
 import base64
 import requests
+
+
 import json
+
 import threading
 import time
 import random
 import io
 
+from skills.speech_gate import can_background_speak, mark_joi_spoke
+
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "gemma3:4b"
+OLLAMA_MODEL = "moondream:latest"
 
 screen_watching = False
 last_comment_time = 0
@@ -48,7 +53,8 @@ def analyze_screen():
             "stream": False
         }
 
-        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        # in screen_awareness.py
+        response = requests.post(OLLAMA_URL, json=payload, timeout=120)
         result = response.json()
         return result.get("response", None)
     except Exception as e:
@@ -66,18 +72,19 @@ def start_screen_watching(speak_func, interval=300):
     thread.start()
     print("✅ Screen watching started!")
 
+
+
 def _watch_loop(speak_func, interval):
     global screen_watching, last_comment_time
-    time.sleep(60)  # wait 1 min before first comment
-
+    time.sleep(60)
     while screen_watching:
         try:
             current_time = time.time()
-            if current_time - last_comment_time >= interval:
+            if current_time - last_comment_time >= interval and can_background_speak():
                 comment = analyze_screen()
                 if comment:
-                    print(f"👁️ Screen comment: {comment}")
                     speak_func(comment)
+                    mark_joi_spoke()
                     last_comment_time = current_time
             time.sleep(30)
         except Exception as e:
