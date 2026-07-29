@@ -157,9 +157,22 @@ def handle(query):
         speak(open_app(query))
 
     # Weather
-    elif any(w in query for w in ["weather", "temperature", "forecast"]):
-        speak(get_weather())
 
+    elif any(w in query for w in ["weather", "temperature", "forecast"]):
+        # Check if asking about specific city
+        cities = ["delhi", "mumbai", "bangalore", "bengaluru", "chennai",
+                  "kolkata", "hyderabad", "pune", "jaipur", "goa"]
+        found_city = None
+        for city in cities:
+            if city in query.lower():
+                found_city = city
+                break
+
+        if found_city:
+            from skills.weather import get_weather_for_city
+            speak(get_weather_for_city(found_city))
+        else:
+            speak(get_weather())
     # Jokes
     elif any(w in query for w in ["joke", "funny", "laugh"]):
         speak(get_joke())
