@@ -375,4 +375,4 @@ Built by **Abhinav** — CS student from Bengaluru 🇮🇳
 
 ---
 
-⭐ **Star this repo if JOI helped you!**
+⭐ *Star this repo if JOI helped you!*
