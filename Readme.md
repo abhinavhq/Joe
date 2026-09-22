@@ -124,7 +124,7 @@ JOI is a fully local, human-like AI voice assistant built in Python. She talks, 
 ### ⏰ Reminders
 - Voice-set reminders with scheduled alerts
 
-### 🤖 Desktop Avatar
+## 🤖 Desktop Avatar
 - Mate Engine integration (Live2D-style avatar)
 - Auto starts/stops with JOI
 
