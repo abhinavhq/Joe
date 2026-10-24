@@ -6,7 +6,7 @@ JOI is a fully local, human-like AI voice assistant built in Python. She talks, 
 
 ---
 
-## ✨ Features
+## ✨ Features 
 
 ### 🧠 AI & Personality
 - Powered by **Cerebras** (ultra-fast LLM inference) with `gpt-oss-120b`
