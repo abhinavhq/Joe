@@ -65,7 +65,7 @@ JOI is a fully local, human-like AI voice assistant built in Python. She talks, 
 
 ### 💰 Finance & Crypto
 - Live crypto prices via CoinGecko (free, no key)
-- Live stock prices via Alpha Vantage
+- Live stock prices via Alpha Vantage 
 - RSI + trend analysis
 - AI-generated bullish/bearish outlook
 - Market overview (BTC dominance, total market cap)
