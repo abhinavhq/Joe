@@ -16,7 +16,7 @@ JOI is a fully local, human-like AI voice assistant built in Python. She talks, 
 - Dynamic personality that shifts based on time of day and your mood
 
 ### 🎙️ Voice
-- **Cartesia TTS** (`sonic-2`) for ultra-realistic voice with emotion control
+- **Cartesia TTS** (`sonic-2`) for ultra-realistic voice with emotion contrOL
 - Edge TTS fallback (free, unlimited)
 - Voice emotion system — speaks faster when excited, softer when sad
 - Interruption handling — stops talking when you speak
